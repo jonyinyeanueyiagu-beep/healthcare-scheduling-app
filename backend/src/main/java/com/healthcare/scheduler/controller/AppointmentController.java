@@ -1,11 +1,17 @@
 package com.healthcare.scheduler.controller;
 
+import com.healthcare.scheduler.dto.AppointmentRequest;
 import com.healthcare.scheduler.model.Appointment;
+import com.healthcare.scheduler.model.Client;
+import com.healthcare.scheduler.model.User;
 import com.healthcare.scheduler.repository.AppointmentRepository;
+import com.healthcare.scheduler.repository.ClientRepository;
+import com.healthcare.scheduler.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -18,6 +24,12 @@ public class AppointmentController {
 
     @Autowired
     private AppointmentRepository appointmentRepository;
+
+    @Autowired
+    private ClientRepository clientRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<List<Appointment>> getAllAppointments() {
@@ -33,20 +45,51 @@ public class AppointmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Appointment> createAppointment(@Valid @RequestBody Appointment appointment) {
+    @PreAuthorize("hasRole('SCHEDULER')")
+    public ResponseEntity<?> createAppointment(@Valid @RequestBody AppointmentRequest request) {
+        Client client = clientRepository.findById(request.getClientId())
+                .orElseThrow(() -> new RuntimeException("Client not found"));
+        
+        User careWorker = userRepository.findById(request.getCareWorkerId())
+                .orElseThrow(() -> new RuntimeException("Care worker not found"));
+
+        if (careWorker.getRole() != User.UserRole.HEALTHCARE_WORKER) {
+            return ResponseEntity.badRequest().body("Selected user is not a healthcare worker");
+        }
+
+        Appointment appointment = Appointment.builder()
+                .client(client)
+                .careWorker(careWorker)
+                .scheduledTime(request.getScheduledTime())
+                .durationMinutes(request.getDurationMinutes())
+                .notes(request.getNotes())
+                .careProvided(request.getCareProvided())
+                .status(Appointment.AppointmentStatus.SCHEDULED)
+                .voiceNotificationSent(false)
+                .build();
+
         Appointment saved = appointmentRepository.save(appointment);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Appointment> updateAppointment(@PathVariable Long id, @Valid @RequestBody Appointment details) {
+    @PreAuthorize("hasRole('SCHEDULER')")
+    public ResponseEntity<?> updateAppointment(@PathVariable Long id, @Valid @RequestBody AppointmentRequest request) {
         return appointmentRepository.findById(id)
                 .map(appointment -> {
-                    appointment.setScheduledTime(details.getScheduledTime());
-                    appointment.setDurationMinutes(details.getDurationMinutes());
-                    appointment.setStatus(details.getStatus());
-                    appointment.setNotes(details.getNotes());
-                    appointment.setCareProvided(details.getCareProvided());
+                    Client client = clientRepository.findById(request.getClientId())
+                            .orElseThrow(() -> new RuntimeException("Client not found"));
+                    
+                    User careWorker = userRepository.findById(request.getCareWorkerId())
+                            .orElseThrow(() -> new RuntimeException("Care worker not found"));
+
+                    appointment.setClient(client);
+                    appointment.setCareWorker(careWorker);
+                    appointment.setScheduledTime(request.getScheduledTime());
+                    appointment.setDurationMinutes(request.getDurationMinutes());
+                    appointment.setNotes(request.getNotes());
+                    appointment.setCareProvided(request.getCareProvided());
+                    
                     Appointment updated = appointmentRepository.save(appointment);
                     return ResponseEntity.ok(updated);
                 })
@@ -88,6 +131,7 @@ public class AppointmentController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Void> deleteAppointment(@PathVariable Long id) {
         return appointmentRepository.findById(id)
                 .map(appointment -> {
