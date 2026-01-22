@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,12 +33,14 @@ public class ClientController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Client> createClient(@Valid @RequestBody Client client) {
         Client savedClient = clientRepository.save(client);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedClient);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Client> updateClient(@PathVariable Long id, @Valid @RequestBody Client clientDetails) {
         return clientRepository.findById(id)
                 .map(client -> {
@@ -57,6 +60,7 @@ public class ClientController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
         return clientRepository.findById(id)
                 .map(client -> {
