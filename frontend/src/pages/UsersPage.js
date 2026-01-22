@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -30,16 +30,11 @@ const UsersPage = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const { user: currentUser } = useAuth();
 
-  useEffect(() => {
-    if (currentUser?.role !== 'SCHEDULER') {
-      showSnackbar('Access denied: Only schedulers can view this page', 'error');
-      return;
-    }
-    fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  const showSnackbar = useCallback((message, severity) => {
+    setSnackbar({ open: true, message, severity });
+  }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await userService.getAll();
@@ -49,7 +44,15 @@ const UsersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showSnackbar]);
+
+  useEffect(() => {
+    if (currentUser?.role !== 'SCHEDULER') {
+      showSnackbar('Access denied: Only schedulers can view this page', 'error');
+      return;
+    }
+    fetchUsers();
+  }, [currentUser, fetchUsers, showSnackbar]);
 
   const handleDelete = async (id) => {
     if (currentUser?.id === id) {
@@ -66,10 +69,6 @@ const UsersPage = () => {
         showSnackbar('Error deleting user: ' + error.message, 'error');
       }
     }
-  };
-
-  const showSnackbar = (message, severity) => {
-    setSnackbar({ open: true, message, severity });
   };
 
   const handleCloseSnackbar = () => {

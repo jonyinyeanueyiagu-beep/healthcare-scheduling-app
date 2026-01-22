@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -44,12 +44,11 @@ const ClientsPage = () => {
   const [editingClient, setEditingClient] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  useEffect(() => {
-    fetchClients();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const showSnackbar = useCallback((message, severity) => {
+    setSnackbar({ open: true, message, severity });
   }, []);
 
-  const fetchClients = async () => {
+  const fetchClients = useCallback(async () => {
     try {
       setLoading(true);
       const response = await clientService.getAll();
@@ -59,7 +58,11 @@ const ClientsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showSnackbar]);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
   const handleOpenDialog = (client = null) => {
     setEditingClient(client);
@@ -99,10 +102,6 @@ const ClientsPage = () => {
         showSnackbar('Error deleting client: ' + error.message, 'error');
       }
     }
-  };
-
-  const showSnackbar = (message, severity) => {
-    setSnackbar({ open: true, message, severity });
   };
 
   const handleCloseSnackbar = () => {

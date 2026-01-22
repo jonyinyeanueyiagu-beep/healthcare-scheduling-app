@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -48,12 +48,11 @@ const AppointmentsPage = () => {
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const showSnackbar = useCallback((message, severity) => {
+    setSnackbar({ open: true, message, severity });
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [appointmentsRes, clientsRes, workersRes] = await Promise.all([
@@ -69,7 +68,11 @@ const AppointmentsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showSnackbar]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleOpenDialog = (appointment = null) => {
     setEditingAppointment(appointment);
@@ -124,10 +127,6 @@ const AppointmentsPage = () => {
     } catch (error) {
       showSnackbar('Error updating status: ' + error.message, 'error');
     }
-  };
-
-  const showSnackbar = (message, severity) => {
-    setSnackbar({ open: true, message, severity });
   };
 
   const handleCloseSnackbar = () => {
