@@ -1,6 +1,6 @@
 # Healthcare Scheduling Application - Backend API
 
-A Spring Boot-based REST API for managing healthcare scheduling, including user authentication, client management, appointment scheduling, and automated voice call notifications via Twilio.
+A Spring Boot-based REST API for managing healthcare scheduling, including user authentication, client management, appointment scheduling, and automated voice call notifications via Azure Communication Services.
 
 ## Features
 
@@ -268,7 +268,7 @@ http://localhost:8080/h2-console
 
 1. Update `application.properties` with production database credentials
 2. Set a secure JWT secret
-3. Configure Twilio credentials
+3. Configure Azure Communication Services credentials
 4. Build the application: `mvn clean package -DskipTests`
 5. Run with production profile: `java -jar target/scheduler-backend-1.0.0.jar --spring.profiles.active=prod`
 

@@ -4,6 +4,7 @@ import com.azure.communication.callautomation.CallAutomationClient;
 import com.azure.communication.callautomation.CallAutomationClientBuilder;
 import com.azure.communication.callautomation.models.*;
 import com.azure.communication.common.PhoneNumberIdentifier;
+import com.healthcare.scheduler.exception.VoiceNotificationException;
 import com.healthcare.scheduler.model.Appointment;
 import com.healthcare.scheduler.model.Client;
 import com.healthcare.scheduler.repository.AppointmentRepository;
@@ -98,7 +99,7 @@ public class AzureVoiceService {
         } catch (Exception e) {
             logger.error("Failed to send voice notification for appointment {}: {}", 
                         appointment.getId(), e.getMessage());
-            throw new RuntimeException("Failed to send voice notification", e);
+            throw new VoiceNotificationException("Failed to send voice notification", e);
         }
     }
 
