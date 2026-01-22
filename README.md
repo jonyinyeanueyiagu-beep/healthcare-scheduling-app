@@ -37,7 +37,7 @@ A Spring Boot-based REST API for managing healthcare scheduling, including user 
 
 - **Language**: Java 17
 - **Framework**: Spring Boot 3.2.1
-- **Database**: PostgreSQL (production) / H2 (development)
+- **Database**: MySQL (production) / H2 (development)
 - **Authentication**: JWT (JSON Web Tokens)
 - **Build Tool**: Maven
 - **API Documentation**: SpringDoc OpenAPI (Swagger)
@@ -50,7 +50,7 @@ Before running this application, ensure you have the following installed:
 
 - Java 17 or higher
 - Maven 3.8+
-- PostgreSQL 12+ (for production) or use H2 for development
+- MySQL 8.0+ (for production) or use H2 for development
 - Azure account with Communication Services (for voice notifications)
 
 ## Installation & Setup
@@ -64,19 +64,19 @@ cd healthcare-scheduling-app/backend
 
 ### 2. Database Setup
 
-#### Option A: Using PostgreSQL (Production)
+#### Option A: Using MySQL (Production)
 
-1. Install PostgreSQL if not already installed
+1. Install MySQL if not already installed
 2. Create a database:
 
 ```sql
 CREATE DATABASE healthcare_scheduler;
 ```
 
-3. Update `src/main/resources/application.properties` with your PostgreSQL credentials:
+3. Update `src/main/resources/application.properties` with your MySQL credentials:
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/healthcare_scheduler
+spring.datasource.url=jdbc:mysql://localhost:3306/healthcare_scheduler
 spring.datasource.username=your_username
 spring.datasource.password=your_password
 ```
@@ -230,9 +230,9 @@ curl -X GET http://localhost:8080/api/clients \
 You can override configuration using environment variables:
 
 ```bash
-export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/healthcare_scheduler
-export SPRING_DATASOURCE_USERNAME=postgres
-export SPRING_DATASOURCE_PASSWORD=postgres
+export SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/healthcare_scheduler
+export SPRING_DATASOURCE_USERNAME=root
+export SPRING_DATASOURCE_PASSWORD=root
 export JWT_SECRET=your-secret-key
 export AZURE_COMMUNICATION_CONNECTION_STRING=endpoint=https://your-resource.communication.azure.com/;accesskey=your-key
 export AZURE_COMMUNICATION_PHONE_NUMBER=+1234567890
@@ -277,7 +277,7 @@ http://localhost:8080/h2-console
 ### Common Issues
 
 1. **Database Connection Error**
-   - Ensure PostgreSQL is running
+   - Ensure MySQL is running
    - Verify database credentials in `application.properties`
    - Check if database exists
 
