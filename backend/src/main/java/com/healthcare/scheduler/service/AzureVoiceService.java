@@ -1,45 +1,50 @@
 package com.healthcare.scheduler.service;
 
+import com.azure.communication.callautomation.CallAutomationClient;
+import com.azure.communication.callautomation.CallAutomationClientBuilder;
+import com.azure.communication.callautomation.models.*;
+import com.azure.communication.common.PhoneNumberIdentifier;
 import com.healthcare.scheduler.model.Appointment;
 import com.healthcare.scheduler.model.Client;
 import com.healthcare.scheduler.repository.AppointmentRepository;
-import com.twilio.Twilio;
-import com.twilio.rest.api.v2010.account.Call;
-import com.twilio.type.PhoneNumber;
-import com.twilio.type.Twiml;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PostConstruct;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 
 @Service
-public class TwilioVoiceService {
+public class AzureVoiceService {
 
-    private static final Logger logger = LoggerFactory.getLogger(TwilioVoiceService.class);
+    private static final Logger logger = LoggerFactory.getLogger(AzureVoiceService.class);
 
-    @Value("${twilio.account-sid}")
-    private String accountSid;
+    @Value("${azure.communication.connection-string}")
+    private String connectionString;
 
-    @Value("${twilio.auth-token}")
-    private String authToken;
+    @Value("${azure.communication.phone-number}")
+    private String azurePhoneNumber;
 
-    @Value("${twilio.phone-number}")
-    private String twilioPhoneNumber;
+    @Value("${azure.communication.callback-url}")
+    private String callbackUrl;
 
     @Autowired
     private AppointmentRepository appointmentRepository;
 
+    private CallAutomationClient callAutomationClient;
+
     @PostConstruct
     public void init() {
         try {
-            Twilio.init(accountSid, authToken);
-            logger.info("Twilio initialized successfully");
+            callAutomationClient = new CallAutomationClientBuilder()
+                    .connectionString(connectionString)
+                    .buildClient();
+            logger.info("Azure Communication Services initialized successfully");
         } catch (Exception e) {
-            logger.error("Failed to initialize Twilio: {}", e.getMessage());
+            logger.error("Failed to initialize Azure Communication Services: {}", e.getMessage());
         }
     }
 
@@ -63,21 +68,32 @@ public class TwilioVoiceService {
                 appointment.getDurationMinutes()
             );
 
-            String twiml = String.format(
-                "<Response><Say voice=\"alice\">%s</Say></Response>",
-                message
-            );
+            // Create call participants
+            PhoneNumberIdentifier target = new PhoneNumberIdentifier(client.getPhoneNumber());
+            PhoneNumberIdentifier caller = new PhoneNumberIdentifier(azurePhoneNumber);
 
-            Call call = Call.creator(
-                    new PhoneNumber(client.getPhoneNumber()),
-                    new PhoneNumber(twilioPhoneNumber),
-                    new Twiml(twiml)
-            ).create();
+            // Create call invitation
+            CallInvite callInvite = new CallInvite(target, caller);
 
-            logger.info("Voice call initiated successfully. Call SID: {}", call.getSid());
+            // Initiate the call
+            var callResult = callAutomationClient.createCall(callInvite, callbackUrl);
+            
+            if (callResult != null) {
+                String callConnectionId = callResult.getCallConnectionProperties().getCallConnectionId();
+                logger.info("Voice call initiated successfully. Call Connection ID: {}", callConnectionId);
 
-            appointment.setVoiceNotificationSent(true);
-            appointmentRepository.save(appointment);
+                // Play the message using text-to-speech
+                TextSource textSource = new TextSource()
+                        .setText(message)
+                        .setVoiceName("en-US-JennyNeural"); // Azure Neural Voice
+
+                callAutomationClient.getCallConnection(callConnectionId)
+                        .getCallMedia()
+                        .play(textSource, Collections.singletonList(target));
+
+                appointment.setVoiceNotificationSent(true);
+                appointmentRepository.save(appointment);
+            }
 
         } catch (Exception e) {
             logger.error("Failed to send voice notification for appointment {}: {}", 
@@ -96,7 +112,7 @@ public class TwilioVoiceService {
             for (Appointment appointment : pendingNotifications) {
                 try {
                     sendVoiceNotification(appointment);
-                    Thread.sleep(1000); // Rate limiting - 1 second between calls
+                    Thread.sleep(2000); // Rate limiting - 2 seconds between calls
                 } catch (Exception e) {
                     logger.error("Failed to send notification for appointment {}", appointment.getId(), e);
                 }

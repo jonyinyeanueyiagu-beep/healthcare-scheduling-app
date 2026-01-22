@@ -2,7 +2,7 @@ package com.healthcare.scheduler.controller;
 
 import com.healthcare.scheduler.model.Appointment;
 import com.healthcare.scheduler.repository.AppointmentRepository;
-import com.healthcare.scheduler.service.TwilioVoiceService;
+import com.healthcare.scheduler.service.AzureVoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 public class NotificationController {
 
     @Autowired
-    private TwilioVoiceService twilioVoiceService;
+    private AzureVoiceService azureVoiceService;
 
     @Autowired
     private AppointmentRepository appointmentRepository;
@@ -26,7 +26,7 @@ public class NotificationController {
             Appointment appointment = appointmentRepository.findById(appointmentId)
                     .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-            twilioVoiceService.sendVoiceNotification(appointment);
+            azureVoiceService.sendVoiceNotification(appointment);
             return ResponseEntity.ok("Voice notification sent successfully");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to send notification: " + e.getMessage());
@@ -37,7 +37,7 @@ public class NotificationController {
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<?> sendBulkVoiceNotifications() {
         try {
-            twilioVoiceService.sendBulkNotifications();
+            azureVoiceService.sendBulkNotifications();
             return ResponseEntity.ok("Bulk notifications process initiated");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to send bulk notifications: " + e.getMessage());

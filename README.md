@@ -25,7 +25,7 @@ A Spring Boot-based REST API for managing healthcare scheduling, including user 
   - Record check-in/check-out times
   
 - **Automated Voice Notifications**
-  - Send voice call notifications to clients via Twilio
+  - Send voice call notifications to clients via Azure Communication Services
   - Bulk notification support
   - Track notification status
 
@@ -41,7 +41,7 @@ A Spring Boot-based REST API for managing healthcare scheduling, including user 
 - **Authentication**: JWT (JSON Web Tokens)
 - **Build Tool**: Maven
 - **API Documentation**: SpringDoc OpenAPI (Swagger)
-- **Voice Notifications**: Twilio API
+- **Voice Notifications**: Azure Communication Services
 - **ORM**: Spring Data JPA with Hibernate
 
 ## Prerequisites
@@ -51,7 +51,7 @@ Before running this application, ensure you have the following installed:
 - Java 17 or higher
 - Maven 3.8+
 - PostgreSQL 12+ (for production) or use H2 for development
-- Twilio account (for voice notifications)
+- Azure account with Communication Services (for voice notifications)
 
 ## Installation & Setup
 
@@ -100,19 +100,21 @@ jwt.expiration=86400000
 
 **Important**: Use a strong, randomly generated secret key in production (at least 256 bits).
 
-### 4. Configure Twilio (for Voice Notifications)
+### 4. Configure Azure Communication Services (for Voice Notifications)
 
-1. Sign up for a Twilio account at https://www.twilio.com
-2. Get your Account SID, Auth Token, and a Twilio phone number
-3. Update `application.properties`:
+1. Create an Azure account at https://azure.microsoft.com
+2. Create a Communication Services resource in Azure Portal
+3. Get your connection string from the resource's "Keys" section
+4. Acquire a phone number from the "Phone Numbers" section
+5. Update `application.properties`:
 
 ```properties
-twilio.account-sid=your_twilio_account_sid
-twilio.auth-token=your_twilio_auth_token
-twilio.phone-number=your_twilio_phone_number
+azure.communication.connection-string=endpoint=https://<resource-name>.communication.azure.com/;accesskey=<access-key>
+azure.communication.phone-number=+1234567890
+azure.communication.callback-url=https://your-domain.com/api/callbacks/voice
 ```
 
-**Note**: Without Twilio credentials, the application will still run, but voice notifications will fail.
+**Note**: Without Azure Communication Services credentials, the application will still run, but voice notifications will fail.
 
 ### 5. Build the Application
 
@@ -232,9 +234,9 @@ export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/healthcare_schedul
 export SPRING_DATASOURCE_USERNAME=postgres
 export SPRING_DATASOURCE_PASSWORD=postgres
 export JWT_SECRET=your-secret-key
-export TWILIO_ACCOUNT_SID=your-account-sid
-export TWILIO_AUTH_TOKEN=your-auth-token
-export TWILIO_PHONE_NUMBER=your-phone-number
+export AZURE_COMMUNICATION_CONNECTION_STRING=endpoint=https://your-resource.communication.azure.com/;accesskey=your-key
+export AZURE_COMMUNICATION_PHONE_NUMBER=+1234567890
+export AZURE_COMMUNICATION_CALLBACK_URL=https://your-domain.com/api/callbacks/voice
 ```
 
 ## Database Schema
@@ -283,10 +285,11 @@ http://localhost:8080/h2-console
    - Ensure JWT secret is at least 256 bits (32 characters)
    - Token expires after 24 hours by default
 
-3. **Twilio Errors**
-   - Verify Twilio credentials are correct
+3. **Azure Communication Services Errors**
+   - Verify connection string is correct
    - Ensure phone numbers are in E.164 format (+1234567890)
-   - Check Twilio account balance and phone number verification
+   - Check Azure resource is active and has available credits
+   - Verify callback URL is accessible from the internet
 
 4. **Port Already in Use**
    - Change server port in `application.properties`: `server.port=8081`
@@ -318,5 +321,5 @@ For issues and questions, please open an issue on GitHub or contact support@heal
 ## Acknowledgments
 
 - Spring Boot team for the excellent framework
-- Twilio for voice notification API
+- Azure Communication Services for voice notification API
 - SpringDoc for API documentation tools
