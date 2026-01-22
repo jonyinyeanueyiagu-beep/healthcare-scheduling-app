@@ -1,6 +1,13 @@
-# Healthcare Scheduling Application - Backend API
+# Healthcare Scheduling Application
 
-A Spring Boot-based REST API for managing healthcare scheduling, including user authentication, client management, appointment scheduling, and automated voice call notifications via Azure Communication Services.
+Complete full-stack healthcare scheduling system with Spring Boot backend, React web frontend, and React Native mobile app.
+
+## Overview
+
+A comprehensive healthcare scheduling platform with:
+- **Backend API**: Spring Boot REST API with JWT authentication and Azure voice notifications
+- **Web Frontend**: React application with Material-UI
+- **Mobile App**: React Native (Expo) for iOS and Android
 
 ## Features
 
@@ -35,6 +42,7 @@ A Spring Boot-based REST API for managing healthcare scheduling, including user 
 
 ## Technology Stack
 
+### Backend
 - **Language**: Java 17
 - **Framework**: Spring Boot 3.2.1
 - **Database**: MySQL (production) / H2 (development)
@@ -44,10 +52,34 @@ A Spring Boot-based REST API for managing healthcare scheduling, including user 
 - **Voice Notifications**: Azure Communication Services
 - **ORM**: Spring Data JPA with Hibernate
 
+### Frontend (Web)
+- **Framework**: React 18
+- **UI Library**: Material-UI (MUI)
+- **Routing**: React Router v6
+- **Forms**: Formik + Yup validation
+- **HTTP Client**: Axios
+- **State Management**: React Query
+
+### Mobile
+- **Framework**: React Native with Expo
+- **UI Library**: React Native Paper
+- **Navigation**: React Navigation
+- **Storage**: AsyncStorage
+- **HTTP Client**: Axios
+
+## Project Structure
+
+```
+healthcare-scheduling-app/
+├── backend/           # Spring Boot REST API
+├── frontend/          # React web application
+├── mobile/            # React Native mobile app
+└── README.md
+```
+
 ## Prerequisites
 
-Before running this application, ensure you have the following installed:
-
+### Backend
 - Java 17 or higher
 - Maven 3.8+
 - MySQL 8.0+ (for production) or use H2 for development
@@ -59,10 +91,52 @@ Before running this application, ensure you have the following installed:
 
 ```bash
 git clone https://github.com/jonyinyeanueyiagu-beep/healthcare-scheduling-app.git
-cd healthcare-scheduling-app/backend
+cd healthcare-scheduling-app
 ```
 
-### 2. Database Setup
+## Quick Start
+
+### 1. Start Backend API
+
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+Backend runs at `http://localhost:8080`
+
+### 2. Start Web Frontend
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Frontend runs at `http://localhost:3000`
+
+### 3. Start Mobile App
+
+```bash
+cd mobile
+npm install
+npm start
+```
+
+Scan QR code with Expo Go app or run in simulator.
+
+---
+
+## Detailed Setup
+
+### Backend Setup
+
+Navigate to backend directory:
+```bash
+cd backend
+```
+
+### 1. Database Setup
 
 #### Option A: Using MySQL (Production)
 
@@ -293,6 +367,90 @@ http://localhost:8080/h2-console
 
 4. **Port Already in Use**
    - Change server port in `application.properties`: `server.port=8081`
+
+## Frontend Setup
+
+Navigate to frontend directory:
+```bash
+cd frontend
+```
+
+### Installation
+
+```bash
+npm install
+```
+
+### Configuration
+
+Create `.env` file:
+```env
+REACT_APP_API_URL=http://localhost:8080/api
+```
+
+### Run Development Server
+
+```bash
+npm start
+```
+
+Access at `http://localhost:3000`
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+See [frontend/README.md](frontend/README.md) for detailed documentation.
+
+---
+
+## Mobile App Setup
+
+Navigate to mobile directory:
+```bash
+cd mobile
+```
+
+### Installation
+
+```bash
+npm install
+```
+
+### Configuration
+
+Update `app.json` with your API URL:
+```json
+{
+  "expo": {
+    "extra": {
+      "apiUrl": "http://YOUR_IP:8080/api"
+    }
+  }
+}
+```
+
+Replace `YOUR_IP` with:
+- Your local IP for physical devices (e.g., `192.168.1.100`)
+- `10.0.2.2` for Android Emulator
+- `localhost` for iOS Simulator
+
+### Run Mobile App
+
+```bash
+# Start dev server
+npm start
+
+# Or run directly
+npm run ios      # iOS Simulator
+npm run android  # Android Emulator
+```
+
+See [mobile/README.md](mobile/README.md) for detailed documentation.
+
+---
 
 ## Security Considerations
 
